@@ -52,8 +52,6 @@ extension LocationManager: CLLocationManagerDelegate {
 }
 
 
-
-
 // MARK: - Get Placemark
 extension LocationManager {
     
