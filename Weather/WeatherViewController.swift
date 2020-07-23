@@ -16,6 +16,7 @@ class WeatherViewController: UIViewController {
     var cities = ["Russia\nMoscow", "Great Britain\nLondon"]
     var scrollView = UIScrollView()
     let pageControl = UIPageControl()
+    var pagesViews: [UIView] = []
     let locationManager = LocationManager()
 
     override func viewDidLoad() {
@@ -24,7 +25,9 @@ class WeatherViewController: UIViewController {
         //let location = getCurrentLocation()
         pageControl.numberOfPages = cities.count + 1
         var location: String?
-        var frame: CGRect = .zero
+        var bounds: CGRect = .zero
+        
+        scrollView.translatesAutoresizingMaskIntoConstraints = false
         
         let addButton = UIButton()
         addButton.setTitle("Add city", for: .normal)
@@ -41,20 +44,21 @@ class WeatherViewController: UIViewController {
         
         NSLayoutConstraint.activate([
             scrollView.topAnchor.constraint(equalTo: view.topAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -100), scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor), scrollView.widthAnchor.constraint(equalTo: view.widthAnchor), pageControl.topAnchor.constraint(equalTo: scrollView.bottomAnchor), pageControl.bottomAnchor.constraint(equalTo: view.bottomAnchor), pageControl.leadingAnchor.constraint(equalTo: view.leadingAnchor), pageControl.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -100), scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor), scrollView.widthAnchor.constraint(equalTo: view.widthAnchor)
         ])
         
+        scrollView.contentSize = CGSize(width: scrollView.frame.size.width*(CGFloat( cities.count + 1)), height: scrollView.frame.size.height)
+        
         for i in 0..<cities.count + 1 {
-            frame.origin.x = scrollView.frame.size.width*CGFloat(i)
-            frame.size = scrollView.frame.size
-            if (i==0) {
-                location = getCurrentLocation()
-                
-            } else {
-                location = cities[i+1]
-            }
-            let pageView = setPage(location: location, weather: "test", frame: frame)
+            location = i == 0 ? getCurrentLocation() : cities[i-1]
+            let pageView = setPage(location: location, weather: "test")
             scrollView.addSubview(pageView)
+            NSLayoutConstraint.activate([
+                pageView.topAnchor.constraint(equalTo: scrollView.topAnchor),
+                pageView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
+                pageView.leadingAnchor.constraint(equalTo: i == 0 ? scrollView.leadingAnchor : pagesViews[i-1].trailingAnchor), pageView.widthAnchor.constraint(equalTo: scrollView.widthAnchor)
+            ])
+            pagesViews.append(pageView)
         }
         
     }
@@ -74,9 +78,9 @@ class WeatherViewController: UIViewController {
         return label
     }
     
-    private func setPage (location: String?, weather: String?, frame: CGRect) -> UIView {
-        let pageView = UIView(frame: frame)
-        
+    private func setPage (location: String?, weather: String?) -> UIView {
+        let pageView = UIView()
+        pageView.translatesAutoresizingMaskIntoConstraints = false
         locationLabel = createLabel(text: location ?? "Unknown")
         weatherLabel = createLabel(text: weather ?? "Unknown")
         setPageLayout(pageView: pageView)
@@ -94,7 +98,7 @@ class WeatherViewController: UIViewController {
             locationLabel.widthAnchor.constraint(equalToConstant: 250),
         ])
         
-        view.addSubview(weatherLabel)
+        pageView.addSubview(weatherLabel)
         NSLayoutConstraint.activate([
             weatherLabel.topAnchor.constraint(equalTo: locationLabel.topAnchor, constant: 110),
             weatherLabel.centerXAnchor.constraint(equalTo: pageView.centerXAnchor),
@@ -152,7 +156,7 @@ extension WeatherViewController: UIScrollViewDelegate{
                 
 
         let percentOffset: CGPoint = CGPoint(x: percentageHorizontalOffset, y: percentageVerticalOffset)
-
+        
     }
 }
 
