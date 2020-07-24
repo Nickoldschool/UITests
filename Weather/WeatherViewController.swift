@@ -6,157 +6,144 @@
 //  Copyright © 2020 ВТБ Юниор iOS. All rights reserved.
 //
 
+//
+//  ViewController.swift
+//  Homework6
+//
+//  Created by Екатерина Вишневская - ВТБ on 05.07.2020.
+//  Copyright © 2020 Екатерина Вишневская - ВТБ. All rights reserved.
+//
+
 import UIKit
+protocol ViewControllerInput {
+    func dataLoaded()
+}
 
 class WeatherViewController: UIViewController {
-    
-    //MARK: - Constants
-    var locationLabel = UILabel()
-    var weatherLabel = UILabel()
-    var cities = ["Russia\nMoscow", "Great Britain\nLondon"]
-    var scrollView = UIScrollView()
-    let pageControl = UIPageControl()
-    var pagesViews: [UIView] = []
-    let locationManager = LocationManager()
 
+    // MARK: - Properties
+
+    private var collectionView: UICollectionView!
+    private var cellModels: [CellModel] = [] {
+        didSet {
+            collectionView.reloadData()
+        }
+    }
+    
+    
+    // MARK: - Lifecycle
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        setCollectionView()
+        loadData()
         
-        //let location = getCurrentLocation()
-        pageControl.numberOfPages = cities.count + 1
-        var location: String?
-        var bounds: CGRect = .zero
+    }
+    
+    
+    // MARK: - Configurations
+    
+    private func setCollectionView() {
         
-        scrollView.translatesAutoresizingMaskIntoConstraints = false
+        let safeArea = view.safeAreaLayoutGuide
         
-        let addButton = UIButton()
-        addButton.setTitle("Add city", for: .normal)
-        addButton.backgroundColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
-        addButton.layer.borderWidth = 2
-        addButton.layer.cornerRadius = 15
-        addButton.layer.masksToBounds = true
-        addButton.translatesAutoresizingMaskIntoConstraints = false
+        let flowLayout = UICollectionViewFlowLayout ()
+        flowLayout.scrollDirection = .horizontal
+        collectionView = UICollectionView(frame: .zero, collectionViewLayout: flowLayout)
+        collectionView.delegate = self
+        collectionView.dataSource = self
         
-        scrollView.delegate = self
-        
-        view.addSubview(pageControl)
-        view.addSubview(scrollView)
-        
-        NSLayoutConstraint.activate([
-            scrollView.topAnchor.constraint(equalTo: view.topAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -100), scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor), scrollView.widthAnchor.constraint(equalTo: view.widthAnchor)
+        view.addSubview(collectionView)
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([collectionView.topAnchor.constraint(equalTo: safeArea.topAnchor), collectionView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor), collectionView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor),collectionView.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor)
         ])
-        
-        scrollView.contentSize = CGSize(width: scrollView.frame.size.width*(CGFloat( cities.count + 1)), height: scrollView.frame.size.height)
-        
-        for i in 0..<cities.count + 1 {
-            location = i == 0 ? getCurrentLocation() : cities[i-1]
-            let pageView = setPage(location: location, weather: "test")
-            scrollView.addSubview(pageView)
-            NSLayoutConstraint.activate([
-                pageView.topAnchor.constraint(equalTo: scrollView.topAnchor),
-                pageView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
-                pageView.leadingAnchor.constraint(equalTo: i == 0 ? scrollView.leadingAnchor : pagesViews[i-1].trailingAnchor), pageView.widthAnchor.constraint(equalTo: scrollView.widthAnchor)
-            ])
-            pagesViews.append(pageView)
-        }
-        
-    }
-    
-    //MARK: - UI
-    private func createLabel(text: String) -> UILabel {
-        let label = UILabel()
-        label.backgroundColor = #colorLiteral(red: 1, green: 1, blue: 1, alpha: 1)
-        label.textAlignment = .center
-        label.layer.borderWidth = 2
-        label.layer.borderColor = UIColor.black.cgColor
-        label.layer.cornerRadius = 15
-        label.layer.masksToBounds = true
-        label.numberOfLines = 0
-        label.translatesAutoresizingMaskIntoConstraints = false
-        label.text = text
-        return label
-    }
-    
-    private func setPage (location: String?, weather: String?) -> UIView {
-        let pageView = UIView()
-        pageView.translatesAutoresizingMaskIntoConstraints = false
-        locationLabel = createLabel(text: location ?? "Unknown")
-        weatherLabel = createLabel(text: weather ?? "Unknown")
-        setPageLayout(pageView: pageView)
-        pageView.backgroundColor = .blue
-        return pageView
+        collectionView.register(Cell.self, forCellWithReuseIdentifier: Cell.cellID)
     }
 
-    private func setPageLayout(pageView: UIView) {
+    private func loadData() {
         
-        pageView.addSubview(locationLabel)
-        NSLayoutConstraint.activate([
-            locationLabel.topAnchor.constraint(equalTo: pageView.topAnchor, constant: 110),
-            locationLabel.centerXAnchor.constraint(equalTo: pageView.centerXAnchor),
-            locationLabel.heightAnchor.constraint(equalToConstant: 90),
-            locationLabel.widthAnchor.constraint(equalToConstant: 250),
-        ])
-        
-        pageView.addSubview(weatherLabel)
-        NSLayoutConstraint.activate([
-            weatherLabel.topAnchor.constraint(equalTo: locationLabel.topAnchor, constant: 110),
-            weatherLabel.centerXAnchor.constraint(equalTo: pageView.centerXAnchor),
-            weatherLabel.heightAnchor.constraint(equalToConstant: 90),
-            weatherLabel.widthAnchor.constraint(equalToConstant: 250),
-        ])
+        cellModels.append(getCurrentLocation() ?? CellModel(location: "Our location is:\nUnknown", city: nil))
+        cellModels.append(contentsOf: [CellModel(country: "Russia", city: "Moscow"), CellModel(country: "Greate Britain", city: "London"), CellModel(country: "Germany", city: "Berlin")])
         
     }
+}
+
+
+
+// MARK: - UICollectionViewDataSource & UICollectionViewDelegate
+
+extension WeatherViewController: UICollectionViewDataSource, UICollectionViewDelegate {
     
-    //MARK: - Function for showing current location: Country&city
+    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        return cellModels.count
+    }
     
-    private func getCurrentLocation() -> String? {
+    func numberOfSections(in collectionView: UICollectionView) -> Int {
+        return 1
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+        if let cell = collectionView.dequeueReusableCell(withReuseIdentifier: Cell.cellID, for: indexPath) as? Cell {
+            cell.viewModel = cellModels[indexPath.row]
+            return cell
+        }
         
-        guard let exposedLocation = self.locationManager.exposedLocation else {
+        return UICollectionViewCell()
+    }
+    //MARK: - Location
+    
+    private func getCurrentLocation() -> CellModel? {
+        let locationManager = LocationManager()
+        
+        guard let exposedLocation = locationManager.exposedLocation else {
             print("*** Error in \(#function): exposedLocation is nil")
             return nil
         }
         
-        var output = "Our location is:"
-        
-        self.locationManager.getPlace(for: exposedLocation) { placemark in
+        var location = "Our location is:"
+        var city = ""
+        locationManager.getPlace(for: exposedLocation) { placemark in
             guard let placemark = placemark else { return }
             
             
             if let country = placemark.country {
-                output = output + "\n\(country)"
+                location = location + "\n\(country)"
             }
            
             if let town = placemark.locality {
-                output = output + "\n\(town)"
+                location = location + "\n\(town)"
+                city = town
             }
             
         }
         
-        return output
+        return CellModel.init(location: location, city: city)
     }
-
-}
-
-extension WeatherViewController: UIScrollViewDelegate{
     
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        let pageIndex = round(scrollView.contentOffset.x/view.frame.width)
-        pageControl.currentPage = Int(pageIndex)
-                
-        let maximumHorizontalOffset: CGFloat = scrollView.contentSize.width - scrollView.frame.width
-        let currentHorizontalOffset: CGFloat = scrollView.contentOffset.x
-                
-                // vertical
-        let maximumVerticalOffset: CGFloat = scrollView.contentSize.height - scrollView.frame.height
-        let currentVerticalOffset: CGFloat = scrollView.contentOffset.y
-                
-        let percentageHorizontalOffset: CGFloat = currentHorizontalOffset / maximumHorizontalOffset
-        let percentageVerticalOffset: CGFloat = currentVerticalOffset / maximumVerticalOffset
-                
+}
 
-        let percentOffset: CGPoint = CGPoint(x: percentageHorizontalOffset, y: percentageVerticalOffset)
-        
+// MARK: - UICollectionViewDelegateFlowLayout
+extension WeatherViewController: UICollectionViewDelegateFlowLayout {
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+        return CGSize(width: view.frame.width, height: view.frame.height)
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+        return 0
+    }
+    
+    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
+        return UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
     }
 }
+
+extension WeatherViewController: ViewControllerInput {
+    
+    func dataLoaded() {
+        // Do something
+    }
+}
+
+
 
