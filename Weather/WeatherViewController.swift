@@ -55,7 +55,11 @@ class WeatherViewController: UIViewController {
         
         view.addSubview(collectionView)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([collectionView.topAnchor.constraint(equalTo: safeArea.topAnchor), collectionView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor), collectionView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor),collectionView.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor)
+        NSLayoutConstraint.activate([
+            collectionView.topAnchor.constraint(equalTo: safeArea.topAnchor),
+            collectionView.trailingAnchor.constraint(equalTo: safeArea.trailingAnchor),
+            collectionView.leadingAnchor.constraint(equalTo: safeArea.leadingAnchor),
+            collectionView.bottomAnchor.constraint(equalTo: safeArea.bottomAnchor)
         ])
         collectionView.register(Cell.self, forCellWithReuseIdentifier: Cell.cellID)
     }
@@ -63,7 +67,9 @@ class WeatherViewController: UIViewController {
     private func loadData() {
         
         cellModels.append(getCurrentLocation() ?? CellModel(location: "Our location is:\nUnknown", city: nil))
-        cellModels.append(contentsOf: [CellModel(country: "Russia", city: "Moscow"), CellModel(country: "Greate Britain", city: "London"), CellModel(country: "Germany", city: "Berlin")])
+        cellModels.append(contentsOf: [CellModel(country: "Russia", city: "Moscow"),
+                                       CellModel(country: "Greate Britain", city: "London"),
+                                       CellModel(country: "Germany", city: "Berlin")])
         
     }
 }
