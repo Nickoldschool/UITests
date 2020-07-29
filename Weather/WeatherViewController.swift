@@ -29,6 +29,7 @@ class WeatherViewController: UIViewController {
             collectionView.reloadData()
         }
     }
+    let cell = Cell()
     
     
     // MARK: - Lifecycle
@@ -38,6 +39,12 @@ class WeatherViewController: UIViewController {
         setCollectionView()
         loadData()
         
+        let cellLocation = cell.locationLabel
+        cellLocation.accessibilityIdentifier = "locationLabel"
+        let cellWeather = cell.weatherLabel
+        cellWeather.accessibilityIdentifier = "weatherLabel"
+        let image = cell.weatherIcoImageView
+        image.accessibilityIdentifier = "image"
     }
     
     
@@ -52,7 +59,7 @@ class WeatherViewController: UIViewController {
         collectionView = UICollectionView(frame: .zero, collectionViewLayout: flowLayout)
         collectionView.delegate = self
         collectionView.dataSource = self
-        
+        collectionView.accessibilityIdentifier = "collectionView"
         view.addSubview(collectionView)
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([

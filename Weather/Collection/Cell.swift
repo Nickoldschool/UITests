@@ -19,6 +19,7 @@ final class Cell: UICollectionViewCell{
     var weatherLabel = UILabel()
     var weatherIcoImageView = UIImageView()
     
+    
     var viewModel: CellModel? {
         didSet {
             if let viewModel = viewModel {
@@ -41,6 +42,13 @@ final class Cell: UICollectionViewCell{
     
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+    
+    enum ChangeEnvironment: String {
+    
+        case dev
+        case prod
+        
     }
     
     //MARK: - UI
@@ -81,6 +89,7 @@ final class Cell: UICollectionViewCell{
 
     private func setPageLayout(pageView: UIView) {
         
+        
         pageView.addSubview(locationLabel)
         NSLayoutConstraint.activate([
             locationLabel.topAnchor.constraint(equalTo: pageView.topAnchor, constant: 110),
@@ -88,6 +97,7 @@ final class Cell: UICollectionViewCell{
             locationLabel.heightAnchor.constraint(equalToConstant: 90),
             locationLabel.widthAnchor.constraint(equalToConstant: 250),
         ])
+        
         
         pageView.addSubview(weatherLabel)
         NSLayoutConstraint.activate([
