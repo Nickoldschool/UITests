@@ -14,7 +14,7 @@ class CellModel: NSObject {
     var location: String?
     var weather: String?  {
         get {
-            var temp: String?
+            var temp = "-°"
             let network = Network()
             guard let city = city
                 else {return temp}
